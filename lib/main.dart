@@ -10,14 +10,18 @@ import 'package:mynotes/views/verify_email_view.dart';
 void main() {
   //FutureBuilder requires the binding's BuildContext to function Properly
   WidgetsFlutterBinding.ensureInitialized;
-  //Passing Material App Directly helps reduce our build times through hot reloads
+  //Passing Material App Directly helps reduce our build times durings hot reloads
   runApp(
     MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
         primarySwatch: Colors.teal,
       ),
+      //enable dark theme for the app
+      darkTheme: ThemeData.dark(),
       home: const HomeRoute(),
+
+      //named routes for routing pages/views
       routes: {
         '/register/': (context) => const RegisterView(),
         '/login/': (context) => const LoginView(),
@@ -34,6 +38,9 @@ class HomeRoute extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    //Initialise Firebase App When the Main Route starts
+    //Check current user status: Null->Login, User(verified email)->Notes,
+    //User(unverified email)->Email Verification
     return FutureBuilder(
         future: Firebase.initializeApp(
             options: DefaultFirebaseOptions.currentPlatform),
@@ -41,6 +48,7 @@ class HomeRoute extends StatelessWidget {
           switch (snapshot.connectionState) {
             case ConnectionState.done:
               final user = FirebaseAuth.instance.currentUser;
+              // ignore: avoid_print
               print('user: $user');
               if (user != null) {
                 if (user.emailVerified) {
@@ -53,13 +61,18 @@ class HomeRoute extends StatelessWidget {
               }
 
             default:
-              return const CircularProgressIndicator();
+              return const SafeArea(
+                child: Scaffold(
+                  body: Center(child: CircularProgressIndicator()),
+                ),
+              );
           }
         });
   }
 }
 
 //named navigators access functions
+//No need to use Navigator.of... all the time
 void navigateToLoginView(BuildContext context) {
   Navigator.of(context).pushNamedAndRemoveUntil('/login/', (route) => false);
 }
