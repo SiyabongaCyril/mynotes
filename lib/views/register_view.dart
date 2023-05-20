@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:mynotes/main.dart';
+import 'package:mynotes/utilities/navigators.dart';
+import 'package:mynotes/utilities/show_error_dialog.dart';
+import 'package:mynotes/constants/routes.dart';
+import 'dart:developer' as devtools show log;
 
 class RegisterView extends StatefulWidget {
   const RegisterView({super.key});
@@ -91,24 +94,33 @@ class _RegisterViewState extends State<RegisterView> {
                       await FirebaseAuth.instance
                           .createUserWithEmailAndPassword(
                               email: email, password: password)
-                          .then((value) {
-                        navigateToLoginView(context);
+                          .then((value) async {
+                        final user = FirebaseAuth.instance.currentUser;
+                        devtools.log('user: $user');
+                        await user?.sendEmailVerification().then((value) =>
+                            navigateToView(context, verifyEmailRoute));
                       });
                     } on FirebaseAuthException catch (e) {
                       switch (e.code) {
                         case 'email-already-in-use':
-                          // print('Email already in use.');
+                          await showErrorDialog(
+                              context, "email-already-in-use");
                           break;
                         case 'invalid-email':
-                          // print('The e-mail entered is invalid.');
+                          await showErrorDialog(context, "invalid-email");
                           break;
                         case 'operation-not-allowed':
-                          // print(
-                          // 'Operation-not-allowed, please contact MyNotes mynotes@gmail.com');
+                          await showErrorDialog(context,
+                              "Operation-not-allowed, please contact MyNotes mynotes@gmail.com");
                           break;
                         case 'weak-password':
-                        // print('Weak-password. Paaword should ****');
+                          await showErrorDialog(context, "weak-password");
+                          break;
+                        default:
+                          await showErrorDialog(context, "Error: $e.code");
                       }
+                    } catch (e) {
+                      await showErrorDialog(context, "Error: ${e.toString()}");
                     }
                   },
                   child: const Text("Register"),
@@ -122,7 +134,7 @@ class _RegisterViewState extends State<RegisterView> {
               Center(
                 child: ElevatedButton(
                     onPressed: () {
-                      navigateToLoginView(context);
+                      navigateToViewAndRemoveOtherViews(context, loginRoute);
                     },
                     child: const Text('Login')),
               ),

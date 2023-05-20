@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:mynotes/main.dart';
+import 'package:mynotes/utilities/navigators.dart';
+import 'package:mynotes/constants/routes.dart';
 import 'dart:developer' as devtools show log;
+
+import 'package:mynotes/utilities/show_error_dialog.dart';
 
 class LoginView extends StatefulWidget {
   const LoginView({super.key});
@@ -95,31 +98,38 @@ class LoginViewState extends State<LoginView> {
                               email: email, password: password)
                           .then((value) {
                         final user = FirebaseAuth.instance.currentUser;
-                        // ignore: avoid_print
-                        print(user);
+
+                        devtools.log(user.toString());
                         //CAN WE COME HERE IF USER IS NULL? WON'T WE ONLY
                         //COME HERE AT SUCCESSFUL SIGN IN?
                         if (user != null && user.emailVerified) {
-                          navigateToNotesView(context);
+                          navigateToViewAndRemoveOtherViews(
+                              context, loginRoute);
                         } else if (user != null && !user.emailVerified) {
-                          navigateToVerifyEmailView(context);
+                          navigateToViewAndRemoveOtherViews(
+                              context, verifyEmailRoute);
                         }
                       });
                     } on FirebaseAuthException catch (e) {
                       switch (e.code) {
                         case 'user-not-found':
-                          // print('User not found. Register an account first.');
+                          await showErrorDialog(context, "User not found");
                           break;
                         case 'invalid-email':
-                          // print('The e-mail entered is invalid');
+                          await showErrorDialog(
+                              context, "The e-mail entered is invalid");
                           break;
                         case 'wrong-password':
-                          // print('Incorrect password');
+                          await showErrorDialog(context, "Incorrect password");
                           break;
                         case 'user-disabled':
-                        // print(
-                        // 'User disabled, please contact MyNotes on mynotes@gmail.com');
+                          await showErrorDialog(context, "user-disabled");
+                          break;
+                        default:
+                          await showErrorDialog(context, "Error: $e.code");
                       }
+                    } catch (e) {
+                      await showErrorDialog(context, "Error: ${e.toString()}");
                     }
                   },
                   child: const Text("Login"),
@@ -133,7 +143,7 @@ class LoginViewState extends State<LoginView> {
               Center(
                 child: ElevatedButton(
                     onPressed: () {
-                      navigateToRegisterView(context);
+                      navigateToViewAndRemoveOtherViews(context, registerRoute);
                     },
                     child: const Text('Register')),
               ),

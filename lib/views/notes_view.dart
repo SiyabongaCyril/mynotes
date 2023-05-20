@@ -1,7 +1,8 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:mynotes/main.dart';
 import 'dart:developer' as devtools show log;
+import 'package:mynotes/utilities/navigators.dart';
+import 'package:mynotes/constants/routes.dart';
 
 enum MenuAction { logout }
 
@@ -28,7 +29,7 @@ class _NotesViewState extends State<NotesView> {
                     bool logout = await showLogoutDialog(context);
                     if (logout) {
                       await FirebaseAuth.instance.signOut().then((value) {
-                        navigateToLoginView(context);
+                        navigateToViewAndRemoveOtherViews(context, loginRoute);
                       });
                     }
                 }
@@ -45,7 +46,7 @@ class _NotesViewState extends State<NotesView> {
           child: ElevatedButton(
               onPressed: () async {
                 await FirebaseAuth.instance.currentUser?.delete().then((value) {
-                  navigateToRegisterView(context);
+                  navigateToViewAndRemoveOtherViews(context, loginRoute);
                 });
               },
               child: const Text('Delete Account')),
@@ -63,13 +64,13 @@ Future<bool> showLogoutDialog(BuildContext context) {
   return showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-            title: const Text("Sign Out"),
-            content: const Text("Are you sure you want to sign out"),
+            title: const Text("Log Out"),
+            content: const Text("Are you sure you want to log out?"),
             actions: [
-              TextButton(
+              ElevatedButton(
                   onPressed: () => Navigator.of(context).pop(false),
                   child: const Text("Cancel")),
-              TextButton(
+              ElevatedButton(
                   onPressed: () => Navigator.of(context).pop(true),
                   child: const Text("Logout")),
             ],
