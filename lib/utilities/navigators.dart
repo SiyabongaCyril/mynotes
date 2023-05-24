@@ -1,3 +1,5 @@
+// PAGE NAVIGATOR METHODS
+
 import 'package:flutter/material.dart';
 
 void navigateToViewAndRemoveOtherViews(BuildContext context, String route) {

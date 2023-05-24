@@ -1,9 +1,12 @@
+// APP'S MAIN USER INTERFACE
+
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/material.dart';
-import 'dart:developer' as devtools show log;
 import 'package:mynotes/utilities/navigators.dart';
 import 'package:mynotes/constants/routes.dart';
+import 'package:flutter/material.dart';
+import 'dart:developer' as devtools show log;
 
+// Values for menu items
 enum MenuAction { logout }
 
 class NotesView extends StatefulWidget {
@@ -14,16 +17,21 @@ class NotesView extends StatefulWidget {
 }
 
 class _NotesViewState extends State<NotesView> {
+  // Use an alert dialog when logout is pressed from the menu
   @override
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Notes'),
+          toolbarHeight: 45,
+          title: const Text('Notes',
+              style: TextStyle(
+                fontWeight: FontWeight.w400,
+              )),
           actions: [
             PopupMenuButton<MenuAction>(
               onSelected: (value) async {
-                devtools.log(value.toString());
+                devtools.log(value.toString().toUpperCase());
                 switch (value) {
                   case MenuAction.logout:
                     bool logout = await showLogoutDialog(context);
@@ -44,6 +52,9 @@ class _NotesViewState extends State<NotesView> {
         ),
         body: Center(
           child: ElevatedButton(
+              style: const ButtonStyle(
+                padding: MaterialStatePropertyAll(EdgeInsets.zero),
+              ),
               onPressed: () async {
                 await FirebaseAuth.instance.currentUser?.delete().then((value) {
                   navigateToViewAndRemoveOtherViews(context, loginRoute);

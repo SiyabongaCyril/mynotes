@@ -1,3 +1,5 @@
+// PAGE NAVIGATION ROUTES
+
 const registerRoute = '/register/';
 const loginRoute = '/login/';
 const notesRoute = '/notes/';
