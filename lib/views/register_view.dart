@@ -1,7 +1,8 @@
 // APP'S USER REGISTRATION PAGE
 
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:mynotes/services/auth/auth_exceptions.dart';
+import 'package:mynotes/services/auth/auth_service.dart';
 import 'package:mynotes/utilities/navigators.dart';
 import 'package:mynotes/utilities/show_error_dialog.dart';
 import 'package:mynotes/constants/routes.dart';
@@ -38,6 +39,7 @@ class _RegisterViewState extends State<RegisterView> {
   // Navigate to Email Verification Page
   @override
   Widget build(BuildContext context) {
+    AuthService service = AuthService.firebase();
     return SafeArea(
       child: Scaffold(
         appBar: AppBar(
@@ -101,42 +103,34 @@ class _RegisterViewState extends State<RegisterView> {
                       final password = _password.text;
 
                       try {
-                        await FirebaseAuth.instance
-                            .createUserWithEmailAndPassword(
-                                email: email, password: password)
+                        await service
+                            .createUser(email: email, password: password)
                             .then((value) async {
-                          final user = FirebaseAuth.instance.currentUser;
+                          setState(() => loggingIn = false);
+                          final user = service.currentUser;
                           devtools
                               .log('USER: ${user.toString().toUpperCase()}');
-                          await user?.sendEmailVerification().then((value) {
+                          await service.sendEmailVerification().then((value) {
                             setState(() => loggingIn = false);
                             navigateToView(context, verifyEmailRoute);
                           });
                         });
-                      } on FirebaseAuthException catch (e) {
+                      } on EmailAlreadyInUseAuthException {
                         setState(() => loggingIn = false);
-                        switch (e.code) {
-                          case 'email-already-in-use':
-                            await showErrorDialog(
-                                context, "email-already-in-use");
-                            break;
-                          case 'invalid-email':
-                            await showErrorDialog(context, "invalid-email");
-                            break;
-                          case 'operation-not-allowed':
-                            await showErrorDialog(context,
-                                "Operation-not-allowed, please contact MyNotes mynotes@gmail.com");
-                            break;
-                          case 'weak-password':
-                            await showErrorDialog(context, "weak-password");
-                            break;
-                          default:
-                            await showErrorDialog(context, "Error: $e.code");
-                        }
-                      } catch (e) {
+                        await showErrorDialog(context, "email-already-in-use");
+                      } on InvalidEmailAuthException {
                         setState(() => loggingIn = false);
-                        await showErrorDialog(
-                            context, "Error: ${e.toString()}");
+                        await showErrorDialog(context, "invalid-email");
+                      } on OperationNotAllowedAuthException {
+                        setState(() => loggingIn = false);
+                        await showErrorDialog(context,
+                            "Operation-not-allowed, please contact MyNotes mynotes@gmail.com");
+                      } on WeakPasswordAuthException {
+                        setState(() => loggingIn = false);
+                        await showErrorDialog(context, "weak-password");
+                      } on GenericAuthException {
+                        setState(() => loggingIn = false);
+                        await showErrorDialog(context, "Authentication error");
                       }
                     },
                     child: const Text("Register"),

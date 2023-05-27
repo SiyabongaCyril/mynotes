@@ -1,10 +1,9 @@
 // APP'S USER EMAIL VERIFICATION PAGEtoolbarHeight: 45,
 
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:mynotes/services/auth/auth_service.dart';
 import 'package:mynotes/utilities/navigators.dart';
 import 'package:mynotes/constants/routes.dart';
-import 'dart:developer' as devtools show log;
 
 class VerifyEmailView extends StatefulWidget {
   const VerifyEmailView({super.key});
@@ -21,6 +20,7 @@ class VerifyEmailViewState extends State<VerifyEmailView> {
   // Sign the recently register user out
   @override
   Widget build(BuildContext context) {
+    AuthService service = AuthService.firebase();
     return SafeArea(
       child: Scaffold(
         appBar: AppBar(
@@ -36,11 +36,7 @@ class VerifyEmailViewState extends State<VerifyEmailView> {
           //to registration screen
           leading: IconButton(
               onPressed: () async {
-                final user = FirebaseAuth.instance.currentUser;
-                await user?.delete().then((value) {
-                  devtools.log('USER: ${user.toString().toUpperCase()}');
-                  navigateToViewAndRemoveOtherViews(context, registerRoute);
-                });
+                navigateToViewAndRemoveOtherViews(context, registerRoute);
               },
               icon: const Icon(Icons.arrow_back)),
           automaticallyImplyLeading: false,
@@ -88,9 +84,8 @@ class VerifyEmailViewState extends State<VerifyEmailView> {
                       ),
                       onPressed: () async {
                         setState(() => loggingIn = true);
-                        final user = FirebaseAuth.instance.currentUser;
-                        await user
-                            ?.sendEmailVerification()
+                        await service
+                            .sendEmailVerification()
                             .then((value) => setState(() => loggingIn = false));
                       },
                       child: const Text('Send email verification')),
@@ -116,8 +111,8 @@ class VerifyEmailViewState extends State<VerifyEmailView> {
                   padding: MaterialStatePropertyAll(EdgeInsets.zero),
                 ),
                 onPressed: () async {
-                  await FirebaseAuth.instance
-                      .signOut()
+                  await service
+                      .logOut()
                       .then((value) => navigateToViewAndRemoveOtherViews(
                             context,
                             registerRoute,

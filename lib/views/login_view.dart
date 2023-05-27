@@ -1,7 +1,8 @@
 // APP'S USER LOGIN PAGE
 
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:mynotes/services/auth/auth_exceptions.dart';
+import 'package:mynotes/services/auth/auth_service.dart';
 import 'package:mynotes/utilities/navigators.dart';
 import 'package:mynotes/constants/routes.dart';
 import 'dart:developer' as devtools show log;
@@ -39,6 +40,7 @@ class LoginViewState extends State<LoginView> {
   // Not Verified -> Email Verifiation Page
   @override
   Widget build(BuildContext context) {
+    AuthService service = AuthService.firebase();
     return SafeArea(
       child: Scaffold(
         appBar: AppBar(
@@ -106,49 +108,41 @@ class LoginViewState extends State<LoginView> {
                       final password = _password.text;
 
                       try {
-                        await FirebaseAuth.instance
-                            .signInWithEmailAndPassword(
-                                email: email, password: password)
+                        await service
+                            .logIn(email: email, password: password)
                             .then((value) {
                           //CAN WE COME HERE IF USER IS NULL? WON'T WE ONLY
                           //COME HERE AT SUCCESSFUL SIGN IN?
                           setState(() => loggingIn = false);
-                          final user = FirebaseAuth.instance.currentUser;
+                          final user = service.currentUser;
                           devtools
                               .log('USER: ${user.toString().toUpperCase()}');
 
-                          if (user != null && user.emailVerified) {
+                          if (user != null && user.isEmailVerified) {
                             navigateToViewAndRemoveOtherViews(
                                 context, notesRoute);
-                          } else if (user != null && !user.emailVerified) {
+                          } else if (user != null && !user.isEmailVerified) {
                             navigateToViewAndRemoveOtherViews(
                                 context, verifyEmailRoute);
                           }
                         });
-                      } on FirebaseAuthException catch (e) {
+                      } on UserNotFoundAuthException {
                         setState(() => loggingIn = false);
-                        switch (e.code) {
-                          case 'user-not-found':
-                            await showErrorDialog(context, "User not found");
-                            break;
-                          case 'invalid-email':
-                            await showErrorDialog(
-                                context, "The e-mail entered is invalid");
-                            break;
-                          case 'wrong-password':
-                            await showErrorDialog(
-                                context, "Incorrect password");
-                            break;
-                          case 'user-disabled':
-                            await showErrorDialog(context, "user-disabled");
-                            break;
-                          default:
-                            await showErrorDialog(context, "Error: $e.code");
-                        }
-                      } catch (e) {
+                        await showErrorDialog(context, "User not found");
+                      } on InvalidEmailAuthException {
                         setState(() => loggingIn = false);
                         await showErrorDialog(
-                            context, "Error: ${e.toString()}");
+                            context, "The e-mail entered is invalid");
+                      } on WrongPasswordAuthException {
+                        setState(() => loggingIn = false);
+                        await showErrorDialog(context, "Incorrect password");
+                      } on UserDisabledAuthException {
+                        setState(() => loggingIn = false);
+                        await showErrorDialog(context,
+                            "user-disabled, , please contact MyNotes mynotes@gmail.com");
+                      } on GenericAuthException {
+                        setState(() => loggingIn = false);
+                        await showErrorDialog(context, "Authentication error");
                       }
                     },
                     child: const Text("Login"),
@@ -186,3 +180,28 @@ class LoginViewState extends State<LoginView> {
     );
   }
 }
+
+/*
+FirebaseAuthException catch (e) {
+                        setState(() => loggingIn = false);
+                        switch (e.code) {
+                          case 'user-not-found':
+
+                          case 'invalid-email':
+                            
+                            break;
+                          case 'wrong-password':
+                           
+                            break;
+                          case 'user-disabled':
+                           
+                            break;
+                          default:
+                            
+                        }
+                      } catch (e) {
+                        setState(() => loggingIn = false);
+                        await showErrorDialog(
+                            context, "Error: ${e.toString()}");
+                      }
+*/

@@ -1,7 +1,5 @@
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:mynotes/firebase_options.dart';
 import 'package:mynotes/constants/routes.dart';
+import 'package:mynotes/services/auth/auth_service.dart';
 import 'package:mynotes/views/login_view.dart';
 import 'package:mynotes/views/notes_view.dart';
 import 'package:mynotes/views/register_view.dart';
@@ -19,6 +17,8 @@ void main() {
       title: 'Flutter Demo',
       theme: ThemeData(
         primarySwatch: Colors.teal,
+        visualDensity: VisualDensity.adaptivePlatformDensity,
+        fontFamily: 'Open Sans',
       ),
 
       darkTheme: ThemeData.dark(),
@@ -46,16 +46,17 @@ class HomeRoute extends StatelessWidget {
   // Email NOT verified -> EMail Verification Page
   @override
   Widget build(BuildContext context) {
+    AuthService service = AuthService.firebase();
+
     return FutureBuilder(
-        future: Firebase.initializeApp(
-            options: DefaultFirebaseOptions.currentPlatform),
+        future: service.initialise(),
         builder: (context, snapshot) {
           switch (snapshot.connectionState) {
             case ConnectionState.done:
-              final user = FirebaseAuth.instance.currentUser;
+              final user = service.currentUser;
               devtools.log('USER: ${user.toString().toUpperCase()}');
               if (user != null) {
-                if (user.emailVerified) {
+                if (user.isEmailVerified) {
                   return const NotesView();
                 } else {
                   return const VerifyEmailView();

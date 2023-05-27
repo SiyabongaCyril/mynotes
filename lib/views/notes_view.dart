@@ -1,13 +1,12 @@
 // APP'S MAIN USER INTERFACE
 
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:mynotes/services/auth/auth_service.dart';
 import 'package:mynotes/utilities/navigators.dart';
 import 'package:mynotes/constants/routes.dart';
 import 'package:flutter/material.dart';
 import 'dart:developer' as devtools show log;
 
-// Values for menu items
-enum MenuAction { logout }
+import '../enums/menu_action.dart';
 
 class NotesView extends StatefulWidget {
   const NotesView({super.key});
@@ -20,6 +19,7 @@ class _NotesViewState extends State<NotesView> {
   // Use an alert dialog when logout is pressed from the menu
   @override
   Widget build(BuildContext context) {
+    AuthService service = AuthService.firebase();
     return SafeArea(
       child: Scaffold(
         appBar: AppBar(
@@ -36,7 +36,7 @@ class _NotesViewState extends State<NotesView> {
                   case MenuAction.logout:
                     bool logout = await showLogoutDialog(context);
                     if (logout) {
-                      await FirebaseAuth.instance.signOut().then((value) {
+                      await service.logOut().then((value) {
                         navigateToViewAndRemoveOtherViews(context, loginRoute);
                       });
                     }
@@ -49,18 +49,6 @@ class _NotesViewState extends State<NotesView> {
               child: const Icon(Icons.menu),
             )
           ],
-        ),
-        body: Center(
-          child: ElevatedButton(
-              style: const ButtonStyle(
-                padding: MaterialStatePropertyAll(EdgeInsets.zero),
-              ),
-              onPressed: () async {
-                await FirebaseAuth.instance.currentUser?.delete().then((value) {
-                  navigateToViewAndRemoveOtherViews(context, loginRoute);
-                });
-              },
-              child: const Text('Delete Account')),
         ),
       ),
     );
