@@ -41,139 +41,150 @@ class LoginViewState extends State<LoginView> {
   @override
   Widget build(BuildContext context) {
     AuthService service = AuthService.firebase();
-    return SafeArea(
-      child: Scaffold(
-        appBar: AppBar(
-          toolbarHeight: 45,
-          title: const Text(
-            'Login',
-            style: TextStyle(
-              fontWeight: FontWeight.w400,
+    return Container(
+      color: Theme.of(context).primaryColor,
+      child: SafeArea(
+        child: Scaffold(
+          appBar: AppBar(
+            leadingWidth: 0,
+            toolbarHeight: 35,
+            title: const Text(
+              'Login',
+              style: TextStyle(
+                fontWeight: FontWeight.w400,
+              ),
             ),
           ),
-        ),
-        body: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(5),
-            child:
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              const SizedBox(
-                height: 10,
-              ),
-              const Text("Email:"),
-              SizedBox(
-                width: 300,
-                child: TextField(
-                  controller: _email,
-                  decoration: const InputDecoration(
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.all(Radius.elliptical(5, 5)),
+          body: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(5),
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(
+                      height: 10,
                     ),
-                    contentPadding: EdgeInsets.only(left: 10, right: 10),
-                  ),
-                  enableSuggestions: false,
-                  autocorrect: false,
-                  keyboardType: TextInputType.emailAddress,
-                ),
-              ),
-              const SizedBox(
-                height: 10,
-              ),
-              const Text("Password:"),
-              SizedBox(
-                width: 300,
-                child: TextField(
-                  controller: _password,
-                  decoration: const InputDecoration(
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.all(Radius.elliptical(5, 5)),
-                    ),
-                    contentPadding: EdgeInsets.only(left: 10, right: 10),
-                  ),
-                  obscureText: true,
-                  enableSuggestions: false,
-                  autocorrect: false,
-                ),
-              ),
-              Row(
-                children: [
-                  ElevatedButton(
-                    style: const ButtonStyle(
-                      padding: MaterialStatePropertyAll(EdgeInsets.zero),
-                    ),
-                    onPressed: () async {
-                      setState(() => loggingIn = true);
-
-                      final email = _email.text;
-                      final password = _password.text;
-
-                      try {
-                        await service
-                            .logIn(email: email, password: password)
-                            .then((value) {
-                          //CAN WE COME HERE IF USER IS NULL? WON'T WE ONLY
-                          //COME HERE AT SUCCESSFUL SIGN IN?
-                          setState(() => loggingIn = false);
-                          final user = service.currentUser;
-                          devtools
-                              .log('USER: ${user.toString().toUpperCase()}');
-
-                          if (user != null && user.isEmailVerified) {
-                            navigateToViewAndRemoveOtherViews(
-                                context, notesRoute);
-                          } else if (user != null && !user.isEmailVerified) {
-                            navigateToViewAndRemoveOtherViews(
-                                context, verifyEmailRoute);
-                          }
-                        });
-                      } on UserNotFoundAuthException {
-                        setState(() => loggingIn = false);
-                        await showErrorDialog(context, "User not found");
-                      } on InvalidEmailAuthException {
-                        setState(() => loggingIn = false);
-                        await showErrorDialog(
-                            context, "The e-mail entered is invalid");
-                      } on WrongPasswordAuthException {
-                        setState(() => loggingIn = false);
-                        await showErrorDialog(context, "Incorrect password");
-                      } on UserDisabledAuthException {
-                        setState(() => loggingIn = false);
-                        await showErrorDialog(context,
-                            "user-disabled, , please contact MyNotes mynotes@gmail.com");
-                      } on GenericAuthException {
-                        setState(() => loggingIn = false);
-                        await showErrorDialog(context, "Authentication error");
-                      }
-                    },
-                    child: const Text("Login"),
-                  ),
-                  const SizedBox(
-                    width: 10,
-                  ),
-                  loggingIn
-                      ? Container(
-                          width: 20,
-                          height: 20,
-                          decoration: const BoxDecoration(
-                            shape: BoxShape.circle,
+                    const Text("Email:"),
+                    SizedBox(
+                      width: 300,
+                      child: TextField(
+                        controller: _email,
+                        decoration: const InputDecoration(
+                          border: OutlineInputBorder(
+                            borderRadius:
+                                BorderRadius.all(Radius.elliptical(5, 5)),
                           ),
-                          child: const CircularProgressIndicator())
-                      : const SizedBox(),
-                ],
-              ),
-              const SizedBox(
-                height: 20,
-              ),
-              const Text('If you do not have an account, register:'),
-              ElevatedButton(
-                  style: const ButtonStyle(
-                    padding: MaterialStatePropertyAll(EdgeInsets.zero),
-                  ),
-                  onPressed: () {
-                    navigateToViewAndRemoveOtherViews(context, registerRoute);
-                  },
-                  child: const Text('Register')),
-            ]),
+                          contentPadding: EdgeInsets.only(left: 10, right: 10),
+                        ),
+                        enableSuggestions: false,
+                        autocorrect: false,
+                        keyboardType: TextInputType.emailAddress,
+                      ),
+                    ),
+                    const SizedBox(
+                      height: 10,
+                    ),
+                    const Text("Password:"),
+                    SizedBox(
+                      width: 300,
+                      child: TextField(
+                        controller: _password,
+                        decoration: const InputDecoration(
+                          border: OutlineInputBorder(
+                            borderRadius:
+                                BorderRadius.all(Radius.elliptical(5, 5)),
+                          ),
+                          contentPadding: EdgeInsets.only(left: 10, right: 10),
+                        ),
+                        obscureText: true,
+                        enableSuggestions: false,
+                        autocorrect: false,
+                      ),
+                    ),
+                    Row(
+                      children: [
+                        ElevatedButton(
+                          style: const ButtonStyle(
+                            padding: MaterialStatePropertyAll(EdgeInsets.zero),
+                          ),
+                          onPressed: () async {
+                            setState(() => loggingIn = true);
+
+                            final email = _email.text;
+                            final password = _password.text;
+
+                            try {
+                              await service
+                                  .logIn(email: email, password: password)
+                                  .then((value) {
+                                //CAN WE COME HERE IF USER IS NULL? WON'T WE ONLY
+                                //COME HERE AT SUCCESSFUL SIGN IN?
+                                setState(() => loggingIn = false);
+                                final user = service.currentUser;
+                                devtools.log(
+                                    'USER: ${user.toString().toUpperCase()}');
+
+                                if (user != null && user.isEmailVerified) {
+                                  navigateToViewAndRemoveOtherViews(
+                                      context, notesRoute);
+                                } else if (user != null &&
+                                    !user.isEmailVerified) {
+                                  navigateToViewAndRemoveOtherViews(
+                                      context, verifyEmailRoute);
+                                }
+                              });
+                            } on UserNotFoundAuthException {
+                              setState(() => loggingIn = false);
+                              await showErrorDialog(context, "User not found");
+                            } on InvalidEmailAuthException {
+                              setState(() => loggingIn = false);
+                              await showErrorDialog(
+                                  context, "The e-mail entered is invalid");
+                            } on WrongPasswordAuthException {
+                              setState(() => loggingIn = false);
+                              await showErrorDialog(
+                                  context, "Incorrect password");
+                            } on UserDisabledAuthException {
+                              setState(() => loggingIn = false);
+                              await showErrorDialog(context,
+                                  "user-disabled, , please contact MyNotes mynotes@gmail.com");
+                            } on GenericAuthException {
+                              setState(() => loggingIn = false);
+                              await showErrorDialog(
+                                  context, "Authentication error");
+                            }
+                          },
+                          child: const Text("Login"),
+                        ),
+                        const SizedBox(
+                          width: 10,
+                        ),
+                        loggingIn
+                            ? Container(
+                                width: 20,
+                                height: 20,
+                                decoration: const BoxDecoration(
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const CircularProgressIndicator())
+                            : const SizedBox(),
+                      ],
+                    ),
+                    const SizedBox(
+                      height: 20,
+                    ),
+                    const Text('If you do not have an account, register:'),
+                    ElevatedButton(
+                        style: const ButtonStyle(
+                          padding: MaterialStatePropertyAll(EdgeInsets.zero),
+                        ),
+                        onPressed: () {
+                          navigateToViewAndRemoveOtherViews(
+                              context, registerRoute);
+                        },
+                        child: const Text('Register')),
+                  ]),
+            ),
           ),
         ),
       ),

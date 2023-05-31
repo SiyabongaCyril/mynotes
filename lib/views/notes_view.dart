@@ -20,35 +20,39 @@ class _NotesViewState extends State<NotesView> {
   @override
   Widget build(BuildContext context) {
     AuthService service = AuthService.firebase();
-    return SafeArea(
-      child: Scaffold(
-        appBar: AppBar(
-          toolbarHeight: 45,
-          title: const Text('Notes',
-              style: TextStyle(
-                fontWeight: FontWeight.w400,
-              )),
-          actions: [
-            PopupMenuButton<MenuAction>(
-              onSelected: (value) async {
-                devtools.log(value.toString().toUpperCase());
-                switch (value) {
-                  case MenuAction.logout:
-                    bool logout = await showLogoutDialog(context);
-                    if (logout) {
-                      await service.logOut().then((value) {
-                        navigateToViewAndRemoveOtherViews(context, loginRoute);
-                      });
-                    }
-                }
-              },
-              itemBuilder: (context) => <PopupMenuEntry<MenuAction>>[
-                const PopupMenuItem<MenuAction>(
-                    value: MenuAction.logout, child: Text("Logout"))
-              ],
-              child: const Icon(Icons.menu),
-            )
-          ],
+    return Container(
+      color: Theme.of(context).primaryColor,
+      child: SafeArea(
+        child: Scaffold(
+          appBar: AppBar(
+            toolbarHeight: 35,
+            title: const Text('Notes',
+                style: TextStyle(
+                  fontWeight: FontWeight.w400,
+                )),
+            actions: [
+              PopupMenuButton<MenuAction>(
+                onSelected: (value) async {
+                  devtools.log(value.toString().toUpperCase());
+                  switch (value) {
+                    case MenuAction.logout:
+                      bool logout = await showLogoutDialog(context);
+                      if (logout) {
+                        await service.logOut().then((value) {
+                          navigateToViewAndRemoveOtherViews(
+                              context, loginRoute);
+                        });
+                      }
+                  }
+                },
+                itemBuilder: (context) => <PopupMenuEntry<MenuAction>>[
+                  const PopupMenuItem<MenuAction>(
+                      value: MenuAction.logout, child: Text("Logout"))
+                ],
+                child: const Icon(Icons.menu),
+              )
+            ],
+          ),
         ),
       ),
     );
