@@ -3,10 +3,10 @@ import 'package:flutter/material.dart';
 
 @immutable
 class AuthUser {
-  const AuthUser(this.isEmailVerified);
+  const AuthUser({required this.isEmailVerified});
   final bool isEmailVerified;
 
   factory AuthUser.fromFirebase(firebase_auth.User user) {
-    return AuthUser(user.emailVerified);
+    return AuthUser(isEmailVerified: user.emailVerified);
   }
 }

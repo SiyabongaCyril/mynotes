@@ -112,7 +112,7 @@ class _RegisterViewState extends State<RegisterView> {
 
                             try {
                               await service
-                                  .createUser(email: email, password: password)
+                                  .register(email: email, password: password)
                                   .then((value) async {
                                 setState(() => loggingIn = false);
                                 final user = service.currentUser;
