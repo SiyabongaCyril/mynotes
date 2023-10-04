@@ -7,7 +7,7 @@ class WrongPasswordAuthException implements Exception {}
 
 class UserDisabledAuthException implements Exception {}
 
-//Register Exceptions
+//Registration Exceptions
 class EmailAlreadyInUseAuthException implements Exception {}
 
 class WeakPasswordAuthException implements Exception {}

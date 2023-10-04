@@ -4,30 +4,88 @@ import 'package:mynotes/services/auth/auth_user.dart';
 import 'package:test/test.dart';
 
 void main() {
-  group(
-    'Mock Authentication',
-    () {
-      final provider = MockAuthProvider();
+  // Groping all the tests to test auth_service
+  // We will test auth_service with mock authentication provider
+  group('Mock Authentication', () {
+    // We should be testing auth service but we'll test mock auth provider
+    // directly to access the isInitialised flag
+    final service = MockAuthProvider();
 
-      test('Provider should not be initially initialised', () {
-        expect(provider.isInitialised, false);
-      });
+    test('Provider is initially not initialisatied', () {
+      expect(service.isInitialised, false);
 
-      test('Cannot logout if not initialised', () {
-        expect(
-            provider.logOut(),
-            throwsA(
-              const TypeMatcher<NotInitialisedException>(),
-            ));
-      });
-    },
-  );
+      // there should be no user before initialisation
+      expect(service.currentUser, isNull);
+    });
+
+    test('Cannot login when not initialised', () async {
+      expect(service.logIn(email: 'siya@gmail.com', password: 'you'),
+          throwsA(const TypeMatcher<NotInitialisedException>()));
+    });
+
+    test('Cannot register when not initialised', () async {
+      expect(service.register(email: 'siya@gmail.com', password: 'you'),
+          throwsA(const TypeMatcher<NotInitialisedException>()));
+    });
+
+    test('Cannot send email verification when not initialised', () async {
+      expect(service.sendEmailVerification(),
+          throwsA(const TypeMatcher<NotInitialisedException>()));
+    });
+
+    test('Cannot logout when not initialised', () {
+      expect(service.logOut(),
+          throwsA(const TypeMatcher<NotInitialisedException>()));
+    });
+
+    service.initialise();
+    test('Should be able to be initalised', () async {
+      await service.initialise();
+      expect(service.isInitialised, true);
+
+      // there should be no user after initialisation
+      expect(service.currentUser, isNull);
+    });
+
+    test('Initialisation should take 2 seconds', () async {
+      await service.initialise();
+      expect(service.isInitialised, true);
+    }, timeout: const Timeout(Duration(seconds: 2)));
+
+    test('Creating a user should delegate to login', () async {
+      final badEmailUser =
+          service.register(email: 'abc@gmail.com', password: 'you');
+      // bad email
+      expect(badEmailUser,
+          throwsA(const TypeMatcher<UserNotFoundAuthException>()));
+
+      final badPasswordUser =
+          service.register(email: 'siya@gmail.com', password: 'abcpass');
+      // bad password
+      expect(badPasswordUser,
+          throwsA(const TypeMatcher<WrongPasswordAuthException>()));
+
+      final user =
+          await service.register(email: 'siya@gmail.com', password: 'you');
+      // good email and password: user should be the user we registered
+      expect(service.currentUser, user);
+
+      // recently registered user should not have a verified email
+      expect(service.currentUser!.isEmailVerified, false);
+    });
+
+    test('register/logged in user should be able to get verified', () async {
+      await service.sendEmailVerification();
+
+      expect(service.currentUser!.isEmailVerified, true);
+    });
+  });
 }
 
 class NotInitialisedException implements Exception {}
 
 class MockAuthProvider implements AuthProvider {
-  var _isInitialised = false;
+  bool _isInitialised = false;
   AuthUser? _user;
 
   bool get isInitialised => _isInitialised;
