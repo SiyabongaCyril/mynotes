@@ -21,7 +21,6 @@ void main() {
         fontFamily: 'Open Sans',
       ),
 
-      darkTheme: ThemeData.dark(),
       home: const HomeRoute(),
 
       //named routes for page navigation

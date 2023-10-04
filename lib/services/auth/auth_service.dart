@@ -9,9 +9,9 @@ class AuthService implements AuthProvider {
   factory AuthService.firebase() => AuthService(FirebaseAuthProvider());
 
   @override
-  Future<AuthUser> createUser(
+  Future<AuthUser> register(
       {required String email, required String password}) async {
-    return await provider.createUser(email: email, password: password);
+    return await provider.register(email: email, password: password);
   }
 
   @override
