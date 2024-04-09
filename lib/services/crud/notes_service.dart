@@ -1,121 +1,19 @@
 // Note: This file contains the code for the CRUD operations on the notes table
 
-import 'package:flutter/foundation.dart';
 import 'package:mynotes/services/crud/crud_exceptions.dart';
+import 'package:mynotes/services/crud/database_note.dart';
+import 'package:mynotes/services/crud/database_user.dart';
 import 'package:path/path.dart' show join;
 import 'package:sqflite/sqflite.dart';
 import 'package:path_provider/path_provider.dart'
     show getApplicationDocumentsDirectory, MissingPlatformDirectoryException;
 
-// database related file and table names
-const String databaseName = 'notes.db';
-const String userTable = 'user';
-const String noteTable = 'note';
-
-// database related column names
-const String idColumn = 'id';
-const String emailColumn = 'email';
-const String userIdColumn = 'user_id';
-const String textColumn = 'text';
-const String isSyncedWithCloudColumn = 'is_synced_with_cloud';
-
-// database related queries
-const createNoteTable = '''CREATE TABLE IF NOT EXISTS "note" (
-          "id"	INTEGER NOT NULL UNIQUE,
-          "user_id"	INTEGER NOT NULL,
-          "text"	TEXT,
-          "is_synced_with_cloud"	INTEGER NOT NULL DEFAULT 0,
-          PRIMARY KEY("id" AUTOINCREMENT)
-          );''';
-const createUserTable = ''' CREATE TABLE IF NOT EXISTS "user" (
-	        "id"	INTEGER NOT NULL UNIQUE,
-	        "email"	TEXT NOT NULL UNIQUE,
-	        PRIMARY KEY("id" AUTOINCREMENT)
-          );''';
-
-// Represents a single user
-@immutable
-class DatabaseUser {
-  const DatabaseUser({required this.id, required this.email});
-
-  final int id;
-  final String email;
-
-  // Allow Dart to create a user from a map
-  DatabaseUser.fromMap(Map<String, dynamic> map)
-      : id = map[idColumn] as int,
-        email = map[emailColumn] as String;
-
-  // Allow Dart to export a user as a map
-  Map<String, dynamic> toMap() {
-    return <String, dynamic>{
-      idColumn: id,
-      emailColumn: email,
-    };
-  }
-
-  // Override toString to make it easier to see information about
-  // each user when printing/logging
-  @override
-  String toString() {
-    return 'DatabaseUser{id: $id, email: $email}';
-  }
-
-  @override
-  bool operator ==(covariant DatabaseUser other) => id == other.id;
-
-  @override
-  get hashCode => id.hashCode;
-}
-
-// Represents a single note
-@immutable
-class DatabaseNote {
-  final int id;
-  final int userId;
-  final String text;
-  final bool isSyncedWithCloud;
-
-  const DatabaseNote({
-    required this.id,
-    required this.userId,
-    required this.text,
-    required this.isSyncedWithCloud,
-  });
-
-  // Allow Dart to create a note from a map
-  DatabaseNote.fromMap(Map<String, dynamic> map)
-      : id = map[idColumn] as int,
-        userId = map[userIdColumn] as int,
-        text = map[textColumn] as String,
-        isSyncedWithCloud = (map[isSyncedWithCloudColumn] == 1) ? true : false;
-
-  // Allow Dart to export note as a map
-  Map<String, dynamic> toMap() {
-    return <String, dynamic>{
-      idColumn: id,
-      userIdColumn: userId,
-      textColumn: text,
-      isSyncedWithCloudColumn: isSyncedWithCloud
-    };
-  }
-
-  // Allow note to be printed/logged
-  @override
-  String toString() {
-    return 'Note{id: $id, userId: $userId, isSyncedWithCloud: $isSyncedWithCloud, text: $text }';
-  }
-
-  // Allow for a note to be compared to another note
-  @override
-  bool operator ==(covariant DatabaseNote other) =>
-      id == other.id && userId == other.userId;
-
-  @override
-  int get hashCode => id.hashCode ^ userId.hashCode;
-}
-
+// Note service: CRUD service class for our local database which stores notes &
+// users
 class NoteService {
+  List<DatabaseNote> _notes = [];
+
+  // the database
   Database? _db;
 
   // Get the database if it is open
@@ -314,7 +212,7 @@ class NoteService {
       noteTable,
       <String, dynamic>{
         textColumn: text,
-        isSyncedWithCloudColumn: 1,
+        isSyncedWithCloudColumn: 0,
       },
       where: 'id = ?',
       whereArgs: [note.id],
@@ -327,3 +225,39 @@ class NoteService {
     return getNoteWithId(id: note.id);
   }
 }
+
+// All these variables are used directly by the note_service to CRUD
+
+// database related file and table names
+// name of database
+const String databaseName = 'notes.db';
+// name of user table in database
+const String userTable = 'user';
+// name of note table in database
+const String noteTable = 'note';
+
+// database related column names
+// name of id column in user & note tables
+const String idColumn = 'id';
+// name of email column in user table
+const String emailColumn = 'email';
+// name of userId column in note table
+const String userIdColumn = 'user_id';
+// name of text column in note table
+const String textColumn = 'text';
+// name of isSyncedWithCloud column in note table
+const String isSyncedWithCloudColumn = 'is_synced_with_cloud';
+
+// database related queries
+const createNoteTable = '''CREATE TABLE IF NOT EXISTS "note" (
+          "id"	INTEGER NOT NULL UNIQUE,
+          "user_id"	INTEGER NOT NULL,
+          "text"	TEXT,
+          "is_synced_with_cloud"	INTEGER NOT NULL DEFAULT 0,
+          PRIMARY KEY("id" AUTOINCREMENT)
+          );''';
+const createUserTable = ''' CREATE TABLE IF NOT EXISTS "user" (
+	        "id"	INTEGER NOT NULL UNIQUE,
+	        "email"	TEXT NOT NULL UNIQUE,
+	        PRIMARY KEY("id" AUTOINCREMENT)
+          );''';
